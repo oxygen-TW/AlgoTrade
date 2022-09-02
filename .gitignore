@@ -131,3 +131,5 @@ dmypy.json
 #User defined
 config.json
 ALL_TALIB.list
+*/__pycache__
+__pycache__

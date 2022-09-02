@@ -1,5 +1,7 @@
 import pandas as pd
 import sys, os
+sys.path.insert(1, '../')
+
 import yfinance as yf
 from pandas import Series, DataFrame
 import numpy as np
@@ -53,5 +55,5 @@ class MACD():
 if(__name__ == "__main__"):
     data = DataIO().readCSV("stockData\\2610.TW.csv")
     macd = MACD(data)
-    print(list(macd.signalLine()))
+    #print(list(macd.signalLine()))
     macd.drawPicture()
