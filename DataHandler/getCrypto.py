@@ -1,7 +1,9 @@
+from http.client import TOO_MANY_REQUESTS
+import json
 import yfinance as yf
 import os
 import datetime
-from pandas import concat, DataFrame
+from pandas import concat, DataFrame, DatetimeIndex
 import requests
 
 import logging
@@ -42,30 +44,30 @@ def getMinutsData(crypto, start, end=None, save=True) -> DataFrame:
         data.to_csv(os.path.join("cryptoData", crypto + '_1m.csv'))
     return data
 
-def getFTXData(crypto, start, end, save=True, resolution=60):
+def getFTXData(crypto, start, end, save=True, resolution=60) -> DataFrame:
     #Convert start and end to unix time
-    start = datetime.datetime.strptime(start, "%Y-%m-%d")
-    end = datetime.datetime.strptime(end, "%Y-%m-%d")
-
-    #generate an list of dates between start and end, with a step of 7 day
-    date_list = [start + datetime.timedelta(days=x) for x in range(0, (end-start).days, 7)]
+    startDate = datetime.datetime.strptime(start, "%Y-%m-%d")
+    #endDate -= 1 day for for loop indexing
+    endDate = datetime.datetime.strptime(end, "%Y-%m-%d") - datetime.timedelta(days=1)
     
-    #Convert all dates in date_list to unix time
-    date_list = [int(date.timestamp()) for date in date_list]
-
-    #convert start to unix time and append to date_list
-    # date_list.append(int(start.timestamp()))
-    date_list.reverse()
-    
-    logging.debug(date_list, start)
-
-    #Get data from api: GET https://ftx.com/api/indexes/{market_name}/candles?resolution={resolution}&start_time={start_time}&end_time={end_time} for each date in date_list
+    #Get data from api: GET https://ftx.com/api/indexes/{market_name}/candles?resolution={resolution}&start_time={start_time}&end_time={end_time} from startDate to endDate with step=1 day
     data = DataFrame()
-    logging.info("Processing data...")
+    assert(len(data) == 0), "New dataframe should be empty"
 
-    for i in range(1, len(date_list)):
-        print(f"Processing {date_list[i]} to {date_list[i-1]}")
-        url = f"https://ftx.com/api/indexes/{crypto}/candles?resolution={resolution}&start_time={date_list[i]}&end_time={date_list[i-1]}"
+    #For loop start at start and end at end with step of 1 day
+    
+    indexDay = startDate
+    while(indexDay < endDate):
+        #show date progress in HH:MM:SS
+        logging.info(f"Fetching data for {indexDay.strftime('%Y-%m-%d')}")
+
+        nextDay = (indexDay + datetime.timedelta(days=1)).timestamp()
+        
+        #Convert indexDay to unix time
+        indexDay = indexDay.timestamp()
+        
+
+        url = f"https://ftx.com/api/indexes/{crypto}/candles?resolution={resolution}&start_time={indexDay}&end_time={nextDay}"
         
         r = requests.get(url)
         
@@ -77,9 +79,20 @@ def getFTXData(crypto, start, end, save=True, resolution=60):
             print(f"Error: {r.json()['error']}")
             exit(1)
 
-        data = concat([data, DataFrame(r.json()["result"])])
-    
+        logging.debug(DataFrame(r.json()["result"]))
+        res = json.loads(r.text)
+
+        logging.debug(res["result"][0])
+        #concat new data to data
+        data = concat([data, DataFrame(res["result"])])
+
+        logging.debug("Data Inner->" + str(data.shape))
+        logging.debug("Res Inner->" + str(DataFrame(res["result"]).shape))
+
+        indexDay = datetime.datetime.fromtimestamp(indexDay) + datetime.timedelta(days=1)
+
     logging.info(data.head())
+    logging.debug(data.shape)
 
     if(save):
         data.to_csv(os.path.join("cryptoData", crypto + '_ftx.csv'))
@@ -93,7 +106,7 @@ if(__name__ == "__main__"):
     crypto = 'BTC'
 
     # getData(crypto, startDate, endDate)
-    getFTXData(crypto, "2021-01-01", "2022-09-05")
+    getFTXData(crypto, "2022-08-28", "2022-09-05")
 
     # ## 直接呼叫回測腳本
     # ##TODO: Dont use fixed path
