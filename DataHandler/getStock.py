@@ -11,12 +11,12 @@ def getData(stockNo, start, end):
 
 
 if(__name__ == "__main__"):
-    startDate = '2022-01-01'
+    startDate = '2020-01-01'
     endDate = '2022-08-29'
-    stockNo = '2383.TW'
+    stockNo = '2330.TW'
 
     getData(stockNo, startDate, endDate)
 
     # ## 直接呼叫回測腳本
     # ##TODO: Dont use fixed path
-    os.system(f"python myBacktesting.py {stockNo} stockData")
+    #os.system(f"python myBacktesting.py {stockNo} stockData")
