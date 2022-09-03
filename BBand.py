@@ -46,11 +46,20 @@ class BollingerBands():
     def getBollingerBands_Down(self) -> pd.Series:
         return self.bollinger_down
 
+    def getBollingerBands_Middle(self) -> pd.Series:
+        return self.calculateSMA()
+
+    def BBandsWidth(self) -> pd.Series:
+        return (self.bollinger_up - self.bollinger_down) / self.calculateSMA()
+
+    def BBandsPrecent(self) -> pd.Series:
+        return (self.closeingPrice - self.bollinger_down) / (self.bollinger_up - self.bollinger_down)
+
 if(__name__ == "__main__"): 
     symbol = '2330.TW'
     df = DataIO.readCSV(os.path.join("stockData", symbol + ".csv"))
     df.index = np.arange(df.shape[0]) # Convert the index to array from [0, 1, 2, ...number of rows]
 
     bb = BollingerBands(df, stdN=2.1)
-    bb.drawPicture()
+    print(bb.BBandsPrecent())
 

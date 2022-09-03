@@ -1,11 +1,11 @@
 from backtesting import Backtest, Strategy 
 from backtesting.lib import crossover 
 from backtesting.test import SMA 
-from talib import MACD
 
 import pandas as pd 
 import sys, os
 
+from BBand import BollingerBands
 from MACD import MACD
 from DataHandler.commonTools import DataIO
 
@@ -39,6 +39,21 @@ class MACDCross(Strategy):
             print(f"{self.data.index[-1]} Sell: Price: {self.data.Close[-1]}, Slow: {self.Signal_line[-5:]}, Fast: {self.MACD_line[-5:]}")
             self.sell()
 
+class BBandCross(Strategy):
+    def init(self, stdN=2):
+        bb = BollingerBands(stockData = self.data.df, stdN=stdN)
+        self.bollinger_up = self.I(bb.getBollingerBands_Up)
+        self.bollinger_down = self.I(bb.getBollingerBands_Down)
+
+    def next(self):
+        if crossover(self.data.Close, self.bollinger_up):
+            print(f"{self.data.index[-1]} Buy: Price: {self.data.Close[-1]}, Slow: {self.bollinger_up[-5:]}, Fast: {self.bollinger_down[-5:]}")
+            self.sell()
+
+        elif crossover(self.bollinger_down, self.data.Close):
+            print(f"{self.data.index[-1]} Sell: Price: {self.data.Close[-1]}, Slow: {self.bollinger_up[-5:]}, Fast: {self.bollinger_down[-5:]}")
+            self.buy()
+
 
 stock_no = ""
 dataDir = "stockData"
@@ -53,7 +68,7 @@ df = DataIO.readCSV(os.path.join(dataDir, f"{stock_no}.csv"))
 
 test = Backtest(
     df,
-    SmaCross,
+    BBandCross,
     cash=1000000,
     commission=0.004,
     exclusive_orders=True,
