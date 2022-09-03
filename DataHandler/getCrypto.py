@@ -7,7 +7,7 @@ from pandas import concat, DataFrame, DatetimeIndex
 import requests
 
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 def getData(crypto, start, end, save=True, interval="1d"):
     crypto_data = yf.download(crypto, start=start, end=end, interval=interval)
@@ -92,7 +92,9 @@ def getFTXData(crypto, start, end, save=True, resolution=60) -> DataFrame:
         indexDay = datetime.datetime.fromtimestamp(indexDay) + datetime.timedelta(days=1)
 
     logging.info(data.head())
-    logging.debug(data.shape)
+    logging.debug(data.columns)
+
+    data = data.drop(["volumn"], axis=1)
 
     if(save):
         data.to_csv(os.path.join("cryptoData", crypto + '_ftx.csv'))
@@ -106,7 +108,7 @@ if(__name__ == "__main__"):
     crypto = 'BTC'
 
     # getData(crypto, startDate, endDate)
-    getFTXData(crypto, "2022-08-28", "2022-09-05")
+    getFTXData(crypto, "2022-08-28", "2022-09-02")
 
     # ## 直接呼叫回測腳本
     # ##TODO: Dont use fixed path

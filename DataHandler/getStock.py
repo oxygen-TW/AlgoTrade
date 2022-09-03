@@ -13,7 +13,7 @@ def getData(stockNo, start, end):
 if(__name__ == "__main__"):
     startDate = '2022-01-01'
     endDate = '2022-08-29'
-    stockNo = '2330.TW'
+    stockNo = '2383.TW'
 
     getData(stockNo, startDate, endDate)
 
