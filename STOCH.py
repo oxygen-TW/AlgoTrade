@@ -8,22 +8,22 @@ from DataHandler.commonTools import DataIO
 
 
 class StochasticOscillator():
-    def __init__(self, data, period=14, Kt=3, RSIt=3):
+    def __init__(self, data, period=14, Kt=3, RSVt=3):
         self.stockData = data
         self.period = period
         self.Kt = Kt
-        self.RSIt = RSIt
+        self.RSVt = RSVt
 
-    def calculateRSI(self):
+    def calculateRSV(self):
         highestHigh = self.stockData['High'].rolling(self.period).max()
         lowestLow = self.stockData['Low'].rolling(self.period).min()
         return (self.stockData['Close'] - lowestLow) / (highestHigh - lowestLow)
 
     def calculateK(self):
-        return self.calculateRSI().rolling(self.Kt).mean()
+        return self.calculateRSV().rolling(self.Kt).mean()
 
     def calculateD(self):
-        return self.calculateK().rolling(self.RSIt).mean()
+        return self.calculateK().rolling(self.RSVt).mean()
 
     def drawPicture(self):
         candleData = self.stockData[['Open', 'High', 'Low', 'Close', 'Volume']]
